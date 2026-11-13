@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REKAP UTANG DAPUR - Pencatatan Pengeluaran Dapur Harian</title>
+    <!-- PWA Meta & Inline Manifest -->
+    <meta name="theme-color" content="#ea580c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Utang Dapur">
+    <link rel="apple-touch-icon" href="Gemini_Generated_Image_7s83ab7s83ab7s83-removebg-preview.png">
+    <link id="pwa-manifest" rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22REKAP%20UTANG%20DAPUR%20-%20Pencatatan%20Pengeluaran%20Dapur%20Harian%22%2C%22short_name%22%3A%22Utang%20Dapur%22%2C%22description%22%3A%22Sistem%20Rekap%20%26%20Pencatatan%20Pengeluaran%20Dapur%20Harian%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ea580c%22%2C%22orientation%22%3A%22portrait-primary%22%7D">
+    <!-- Favicon Cutlery Plate -->
+    <link rel="icon" type="image/png" href="Gemini_Generated_Image_7s83ab7s83ab7s83-removebg-preview.png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#ea580c',
+                            600: '#c2410c',
+                            700: '#9a3412',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .food-checkbox:checked + div {
+            border-color: #ea580c;
+            background-color: #fff7ed;
+        }
+        .fasting-checkbox:checked + div {
+            border-color: #64748b;
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-gradient-to-r from-orange-600 via-amber-600 to-amber-700 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+                    <i class="fa-solid fa-kitchen-set text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-tight uppercase">REKAP UTANG DAPUR</h1>
+                    <p class="text-xs text-amber-100 hidden sm:block">Sistem Rekap & Pencatatan Pengeluaran Dapur Harian</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="openModal('exportImportModal')" class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 backdrop-blur-sm">
+                    <i class="fa-solid fa-database"></i>
+                    <span class="hidden sm:inline">Cadangan Data</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full space-y-6 sm:space-y-8">
+        
+        <!-- Period Selector Filter -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-orange-600"></i>
+                    <span>Periode Rekapitulasi</span>
+                </h2>
+                <p class="text-xs text-slate-500">Pilih bulan & tahun untuk rekapitulasi utang dapur</p>
+            </div>
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <select id="selectMonth" onchange="updateDashboard()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 p-2.5 font-semibold outline-none cursor-pointer">
+                    <option value="0">Januari</option>
+                    <option value="1">Februari</option>
+                    <option value="2">Maret</option>
+                    <option value="3">April</option>
+                    <option value="4">Mei</option>
+                    <option value="5">Juni</option>
+                    <option value="6">Juli</option>
+                    <option value="7">Agustus</option>
+                    <option value="8">September</option>
+                    <option value="9">Oktober</option>
+                    <option value="10">November</option>
+                    <option value="11">Desember</option>
+                </select>
+                <select id="selectYear" onchange="updateDashboard()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 p-2.5 font-semibold outline-none cursor-pointer">
+                    <!-- Dynamic Years -->
+                </select>
+            </div>
+        </section>
+
+        <!-- Summary Statistics Cards -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <!-- Total Utang Bulan Ini -->
+            <div class="col-span-2 sm:col-span-1 bg-gradient-to-br from-orange-600 to-amber-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-orange-600/10 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-3 -bottom-3 opacity-15 text-7xl sm:text-8xl">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold text-orange-100 uppercase tracking-wider">Total Utang Bulan Ini</p>
+                    <h3 id="statMonthTotal" class="text-2xl sm:text-3xl font-black mt-1">Rp 0</h3>
+                </div>
+                <p id="statMonthDays" class="text-xs text-orange-100 mt-3 font-medium">0 hari tercatat</p>
+            </div>
+
+            <!-- Rata-rata per Hari -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rata-Rata / Hari</p>
+                    <h3 id="statDailyAvg" class="text-xl sm:text-2xl font-black text-slate-800 mt-1">Rp 0</h3>
+                </div>
+                <p id="statActiveDays" class="text-xs text-slate-500 mt-3 font-medium">Dari hari aktif makan</p>
+            </div>
+
+            <!-- Frekuensi Makan -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Frekuensi Makan</p>
+                    <div class="flex items-baseline gap-1 mt-1">
+                        <h3 id="statTotalMeals" class="text-xl sm:text-2xl font-black text-slate-800">0</h3>
+                        <span class="text-xs font-semibold text-slate-500">porsi terrekap</span>
+                    </div>
+                </div>
+                <div class="flex text-[11px] font-semibold text-slate-500 gap-2 mt-3">
+                    <span id="statSarapanCount">🌅 0</span>
+                    <span id="statSiangCount">☀️ 0</span>
+                    <span id="statLaukCount">🍱 0</span>
+                    <span id="statBungkusKomplitCount">📦 0</span>
+                </div>
+            </div>
+
+            <!-- Hari Tanpa Utang -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hari Rp 0 / Libur</p>
+                    <h3 id="statZeroDaysCount" class="text-xl sm:text-2xl font-black text-slate-800 mt-1">0 Hari</h3>
+                </div>
+                <p class="text-xs text-slate-500 mt-3 font-medium">Tidak ada transaksi</p>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+            
+            <!-- Blank Checklist Form (5 Cols) -->
+            <section id="formSection" class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-100 h-fit lg:col-span-5">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-orange-600"></i>
+                        <span id="formTitle">Ceklist Makan Harian</span>
+                    </h2>
+                    <button id="cancelEditBtn" onclick="resetForm()" class="hidden text-xs text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2.5 py-1 rounded-lg">
+                        Batal Edit
+                    </button>
+                </div>
+
+                <form id="foodForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <input type="hidden" id="editId" value="">
+
+                    <!-- Tanggal Selector -->
+                    <div>
+                        <label for="inputDate" class="block text-xs font-bold text-slate-600 mb-1">Pilih Tanggal</label>
+                        <input type="date" id="inputDate" required onchange="onDateChange()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 p-2.5 outline-none font-semibold transition">
+                    </div>
+
+                    <p class="text-xs font-bold text-slate-600 pt-1">Centang Makanan Yang Dimakan Hari Ini:</p>
+                    <p class="text-[11px] text-slate-400">Untuk Bungkus Lauk dan Bungkus Komplit, isi Qty/Kali. Total otomatis = harga satuan × qty.</p>
+
+                    <!-- Blank Checklist Items -->
+                    <div class="space-y-2.5">
+                        <!-- Sarapan Option -->
+                        <label class="relative block cursor-pointer select-none">
+                            <input type="checkbox" id="checkSarapan" onchange="onFoodCheckChange()" class="food-checkbox sr-only">
+                            <div class="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/50 hover:border-slate-200 transition">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-base">🌅</div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 block">Sarapan</span>
+                                        <span class="text-[11px] font-medium text-slate-400">Porsi Pagi</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-orange-600 bg-orange-100/80 px-2.5 py-1 rounded-lg">Rp 7.000</span>
+                            </div>
+                        </label>
+
+                        <!-- Makan Siang Option -->
+                        <label class="relative block cursor-pointer select-none">
+                            <input type="checkbox" id="checkSiang" onchange="onFoodCheckChange()" class="food-checkbox sr-only">
+                            <div class="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/50 hover:border-slate-200 transition">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-base">☀️</div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 block">Makan Siang</span>
+                                        <span class="text-[11px] font-medium text-slate-400">Porsi Siang Lengkap</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-orange-600 bg-orange-100/80 px-2.5 py-1 rounded-lg">Rp 12.000</span>
+                            </div>
+                        </label>
+
+                        <!-- Bungkus Lauk Option -->
+                        <label class="relative block cursor-pointer select-none">
+                            <input type="checkbox" id="checkLauk" onchange="onFoodCheckChange()" class="food-checkbox sr-only">
+                            <div class="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/50 hover:border-slate-200 transition">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-base">🍱</div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 block">Bungkus Lauk</span>
+                                        <span class="text-[11px] font-medium text-slate-400">Lauk Malam / Tambahan</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-orange-600 bg-orange-100/80 px-2.5 py-1 rounded-lg">Rp 8.000</span>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2 pl-1">
+                                <span class="text-[11px] font-semibold text-slate-500">Qty / Kali:</span>
+                                <input type="number" id="qtyBungkusLauk" min="1" step="1" value="1"
+                                    onclick="event.stopPropagation()"
+                                    oninput="calculateDailyTotal()"
+                                    class="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-center font-bold text-slate-700 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                                    aria-label="Jumlah Bungkus Lauk">
+                                <span class="text-[11px] text-slate-400">Subtotal: <b id="subtotalBungkusLauk" class="text-slate-600">Rp 8.000</b></span>
+                            </div>
+                        </label>
+
+                        <!-- Bungkus Komplit Option -->
+                        <label class="relative block cursor-pointer select-none">
+                            <input type="checkbox" id="checkBungkusKomplit" onchange="onFoodCheckChange()" class="food-checkbox sr-only">
+                            <div class="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/50 hover:border-slate-200 transition">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center font-bold text-base">📦</div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 block">Bungkus Komplit</span>
+                                        <span class="text-[11px] font-medium text-slate-400">Paket Lengkap</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-orange-600 bg-orange-100/80 px-2.5 py-1 rounded-lg">Rp 12.000</span>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2 pl-1">
+                                <span class="text-[11px] font-semibold text-slate-500">Qty / Kali:</span>
+                                <input type="number" id="qtyBungkusKomplit" min="1" step="1" value="1"
+                                    onclick="event.stopPropagation()"
+                                    oninput="calculateDailyTotal()"
+                                    class="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-center font-bold text-slate-700 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                                    aria-label="Jumlah Bungkus Komplit">
+                                <span class="text-[11px] text-slate-400">Subtotal: <b id="subtotalBungkusKomplit" class="text-slate-600">Rp 12.000</b></span>
+                            </div>
+                        </label>
+
+                        <!-- Divider / OR -->
+                        <div class="relative py-1 flex items-center justify-center">
+                            <div class="border-t border-slate-200 w-full"></div>
+                            <span class="bg-white px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider absolute">Atau</span>
+                        </div>
+
+                        <!-- Custom Menu Option -->
+                        <div class="relative block select-none">
+                            <label class="flex items-center justify-between p-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/50 hover:border-slate-200 transition cursor-pointer">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center font-bold text-base">✏️</div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 block">Menu Custom</span>
+                                        <span class="text-[11px] font-medium text-slate-400">Nama & harga diisi manual</span>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="checkCustomMenu" onchange="onFoodCheckChange()" class="food-checkbox w-5 h-5 accent-cyan-600">
+                            </label>
+
+                            <div id="customMenuFields" class="hidden mt-2 p-3 rounded-xl bg-cyan-50/60 border border-cyan-100">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    <div>
+                                        <label for="customMenuName" class="block text-[11px] font-bold text-slate-500 mb-1">Nama Menu</label>
+                                        <input type="text" id="customMenuName" placeholder="Contoh: Es Teh"
+                                            onclick="event.stopPropagation()"
+                                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none">
+                                    </div>
+                                    <div>
+                                        <label for="customMenuPrice" class="block text-[11px] font-bold text-slate-500 mb-1">Harga (Rp)</label>
+                                        <input type="number" id="customMenuPrice" min="0" step="100"
+                                            placeholder="Contoh: 5000"
+                                            onclick="event.stopPropagation()"
+                                            oninput="calculateDailyTotal()"
+                                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none">
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-[11px] text-cyan-700">Harga yang dimasukkan akan langsung ditambahkan ke total jika Menu Custom dicentang.</p>
+                            </div>
+                        </div>
+
+                        <!-- Fasting / Zero Expense Option -->
+                        <label class="relative block cursor-pointer select-none">
+                            <input type="checkbox" id="checkFasting" onchange="onFastingCheckChange()" class="fasting-checkbox sr-only">
+                            <div class="flex items-center justify-between p-3 rounded-xl border-2 border-slate-100 bg-slate-50/50 hover:border-slate-200 transition">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-base">🚫</div>
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-700 block">Tidak Makan / Libur</span>
+                                        <span class="text-[10px] font-medium text-slate-400">Tidak ada pengeluaran hari ini</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-slate-600 bg-slate-200 px-2.5 py-1 rounded-lg">Rp 0</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Optional Note Field -->
+                    <div class="pt-1">
+                        <label for="inputNote" class="block text-xs font-bold text-slate-600 mb-1">Catatan Tambahan (Opsional)</label>
+                        <input type="text" id="inputNote" placeholder="Contoh: Makan siang dengan menu rendang..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 p-2.5 outline-none transition">
+                    </div>
+
+                    <!-- Default Live Total Preview (Starts at Rp 0) -->
+                    <div class="bg-orange-50 border border-orange-200/80 rounded-xl p-3.5 flex justify-between items-center text-orange-950 mt-4">
+                        <span class="text-xs font-bold">Total Hari Ini:</span>
+                        <span id="calculatedTotalDisplay" class="text-xl font-black text-orange-600">Rp 0</span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-orange-600/20 transition duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Simpan Data Hari Ini</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Visual Charts & Analytics (7 Cols) -->
+            <section class="lg:col-span-7 space-y-6">
+                <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-orange-600"></i>
+                                <span>Visualisasi Utang Bulan Ini</span>
+                            </h2>
+                            <p class="text-xs text-slate-500">Grafik harian dan persentase jenis makanan</p>
+                        </div>
+                        <div class="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
+                            <button onclick="toggleChartType('trend')" id="btnChartTrend" class="text-xs px-3 py-1.5 rounded-lg bg-orange-600 text-white font-bold shadow-sm transition">Tren Harian</button>
+                            <button onclick="toggleChartType('category')" id="btnChartCat" class="text-xs px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 font-bold transition">Proporsi Menu</button>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full h-64 sm:h-72 flex items-center justify-center">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-100 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-orange-600"></i>
+                        <span>Riwayat Rekapitulasi Utang Dapur</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Daftar hari yang telah dicatatkan pada bulan terpilih</p>
+                </div>
+
+                <button onclick="exportToCSV()" class="w-full sm:w-auto bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                    <i class="fa-solid fa-file-excel text-sm"></i>
+                    <span>Unduh CSV (Excel)</span>
+                </button>
+            </div>
+
+            <!-- Table Wrapper -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[550px]">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            <th class="py-3 px-4">Tanggal</th>
+                            <th class="py-3 px-4">Menu Tercentang & Catatan</th>
+                            <th class="py-3 px-4 text-right">Total Utang</th>
+                            <th class="py-3 px-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody" class="divide-y divide-slate-100 text-sm">
+                        <!-- Rendered via JS -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden py-10 text-center space-y-2">
+                    <div class="w-14 h-14 bg-orange-50 text-orange-400 rounded-full flex items-center justify-center mx-auto text-xl">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold text-sm">Belum ada rekap catatan dapur untuk bulan ini.</p>
+                    <p class="text-xs text-slate-400">Pilih tanggal dan centang makanan yang dikonsumsi untuk mulai mencatat.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-100 py-6 mt-8 text-center text-xs text-slate-400">
+        <p>© REKAP UTANG DAPUR - Sistem Pencatatan Pengeluaran Makanan Harian</p>
+    </footer>
+
+    <div id="exportImportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-database text-orange-600"></i>
+                    <span>Cadangan & Pemulihan Data</span>
+                </h3>
+                <button onclick="closeModal('exportImportModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Export Section -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Ekspor Data (Backup)</h4>
+                <p class="text-xs text-slate-500">Unduh seluruh data rekap ke dalam file JSON.</p>
+                <button onclick="exportJSON()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Unduh Backup JSON</span>
+                </button>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Import Section -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Impor Data (Restore)</h4>
+                <p class="text-xs text-slate-500">Pulihkan data rekap dari file backup JSON.</p>
+                <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
+                <button onclick="document.getElementById('importFileInput').click()" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-600 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-upload"></i>
+                    <span>Pilih File Backup JSON</span>
+                </button>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Reset Data Section -->
+            <div class="space-y-2">
+                <button onclick="clearAllData()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Hapus Seluruh Data</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 z-50">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMessage">Pesan Notifikasi</span>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'REKAP_UTANG_DAPUR_DATA_V1';
+
+        // Fixed Price Rules
+        const PRICES = {
+            sarapan: 7000,
+            siang: 12000,
+            lauk: 8000,
+            bungkusKomplit: 12000
+        };
+
+        function getQty(id) {
+            const el = document.getElementById(id);
+            const qty = parseInt(el ? el.value : '1', 10);
+            return Number.isFinite(qty) && qty >= 1 ? qty : 1;
+        }
+
+        function getCustomMenuPrice() {
+            const el = document.getElementById('customMenuPrice');
+            const price = parseInt(el ? el.value : '0', 10);
+            return Number.isFinite(price) && price >= 0 ? price : 0;
+        }
+
+        function updateCustomMenuVisibility() {
+            const checked = document.getElementById('checkCustomMenu')?.checked;
+            const fields = document.getElementById('customMenuFields');
+            if (fields) fields.classList.toggle('hidden', !checked);
+        }
+
+        function getCustomMenuLabel(record) {
+            return (record?.customMenuName || '').trim() || 'Menu Custom';
+        }
+
+        function updateBungkusSubtotals() {
+            const laukQty = getQty('qtyBungkusLauk');
+            const komplitQty = getQty('qtyBungkusKomplit');
+            const laukSubtotal = PRICES.lauk * laukQty;
+            const komplitSubtotal = PRICES.bungkusKomplit * komplitQty;
+
+            const laukEl = document.getElementById('subtotalBungkusLauk');
+            const komplitEl = document.getElementById('subtotalBungkusKomplit');
+            if (laukEl) laukEl.textContent = formatIDR(laukSubtotal);
+            if (komplitEl) komplitEl.textContent = formatIDR(komplitSubtotal);
+        }
+
+        // Records Array: [{ id, date, menu flags, customMenuName, customMenuPrice, note, total }]
+        let dailyRecords = [];
+        let currentChartMode = 'trend';
+        let chartInstance = null;
+
+        window.onload = function() {
+            loadFromStorage();
+            setupYearDropdown();
+            syncMonthYearSelectors();
+            resetForm(); // Ensure clean blank form on initial load
+            updateDashboard();
+        };
+
+        function setTodayDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inputDate').value = today;
+        }
+
+        function setupYearDropdown() {
+            const selectYear = document.getElementById('selectYear');
+            const currentYear = new Date().getFullYear();
+            selectYear.innerHTML = '';
+            for (let y = currentYear - 3; y <= currentYear + 2; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                selectYear.appendChild(opt);
+            }
+        }
+
+        function syncMonthYearSelectors() {
+            const now = new Date();
+            document.getElementById('selectMonth').value = now.getMonth();
+            document.getElementById('selectYear').value = now.getFullYear();
+        }
+
+        function normalizeRecords(records) {
+            return (records || []).map(r => ({
+                ...r,
+                bungkusKomplit: !!r.bungkusKomplit,
+                qtyBungkusLauk: r.qtyBungkusLauk > 0 ? parseInt(r.qtyBungkusLauk, 10) : (r.lauk ? 1 : 0),
+                qtyBungkusKomplit: r.qtyBungkusKomplit > 0 ? parseInt(r.qtyBungkusKomplit, 10) : (r.bungkusKomplit ? 1 : 0),
+                customMenu: !!r.customMenu,
+                customMenuName: r.customMenuName || '',
+                customMenuPrice: Number(r.customMenuPrice) || 0
+            }));
+        }
+
+        function loadFromStorage() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (data) {
+                try {
+                    dailyRecords = normalizeRecords(JSON.parse(data));
+                } catch (e) {
+                    dailyRecords = [];
+                }
+            } else {
+                dailyRecords = [];
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyRecords));
+        }
+
+        function onFoodCheckChange() {
+            const sarapan = document.getElementById('checkSarapan').checked;
+            const siang = document.getElementById('checkSiang').checked;
+            const lauk = document.getElementById('checkLauk').checked;
+            const bungkusKomplit = document.getElementById('checkBungkusKomplit').checked;
+            const customMenu = document.getElementById('checkCustomMenu').checked;
+
+            updateCustomMenuVisibility();
+
+            // If any food checkbox is checked, uncheck Fasting/Rp0
+            if (sarapan || siang || lauk || bungkusKomplit || customMenu) {
+                document.getElementById('checkFasting').checked = false;
+            }
+            calculateDailyTotal();
+        }
+
+        function onFastingCheckChange() {
+            const isFasting = document.getElementById('checkFasting').checked;
+            if (isFasting) {
+                // Uncheck all food options
+                document.getElementById('checkSarapan').checked = false;
+                document.getElementById('checkSiang').checked = false;
+                document.getElementById('checkLauk').checked = false;
+                document.getElementById('checkBungkusKomplit').checked = false;
+            }
+            calculateDailyTotal();
+        }
+
+        function calculateDailyTotal() {
+            const isFasting = document.getElementById('checkFasting').checked;
+            let total = 0;
+
+            if (!isFasting) {
+                if (document.getElementById('checkSarapan').checked) total += PRICES.sarapan;
+                if (document.getElementById('checkSiang').checked) total += PRICES.siang;
+                if (document.getElementById('checkLauk').checked) total += PRICES.lauk * getQty('qtyBungkusLauk');
+                if (document.getElementById('checkBungkusKomplit').checked) total += PRICES.bungkusKomplit * getQty('qtyBungkusKomplit');
+                if (document.getElementById('checkCustomMenu').checked) total += getCustomMenuPrice();
+            }
+
+            document.getElementById('calculatedTotalDisplay').textContent = formatIDR(total);
+            updateBungkusSubtotals();
+            return total;
+        }
+
+        function onDateChange() {
+            const date = document.getElementById('inputDate').value;
+            const existing = dailyRecords.find(r => r.date === date);
+
+            if (existing && !document.getElementById('editId').value) {
+                // Populate existing entry if found for that date
+                document.getElementById('checkSarapan').checked = !!existing.sarapan;
+                document.getElementById('checkSiang').checked = !!existing.siang;
+                document.getElementById('checkLauk').checked = !!existing.lauk;
+                document.getElementById('checkBungkusKomplit').checked = !!existing.bungkusKomplit;
+                document.getElementById('checkCustomMenu').checked = !!existing.customMenu;
+                document.getElementById('customMenuName').value = existing.customMenuName || '';
+                document.getElementById('customMenuPrice').value = existing.customMenuPrice > 0 ? existing.customMenuPrice : '';
+                document.getElementById('qtyBungkusLauk').value = existing.qtyBungkusLauk > 0 ? existing.qtyBungkusLauk : 1;
+                document.getElementById('qtyBungkusKomplit').value = existing.qtyBungkusKomplit > 0 ? existing.qtyBungkusKomplit : 1;
+                document.getElementById('checkFasting').checked = !!existing.fasting;
+                document.getElementById('inputNote').value = existing.note || '';
+
+                document.getElementById('formTitle').textContent = 'Edit Rekap Tanggal Ini';
+                document.getElementById('submitBtn').querySelector('span').textContent = 'Update Catatan Tanggal Ini';
+            } else if (!document.getElementById('editId').value) {
+                // Default: All checkboxes UNCHECKED (blank/zero state)
+                document.getElementById('checkSarapan').checked = false;
+                document.getElementById('checkSiang').checked = false;
+                document.getElementById('checkLauk').checked = false;
+                document.getElementById('checkBungkusKomplit').checked = false;
+                document.getElementById('checkCustomMenu').checked = false;
+                document.getElementById('customMenuName').value = '';
+                document.getElementById('customMenuPrice').value = '';
+                document.getElementById('qtyBungkusLauk').value = 1;
+                document.getElementById('qtyBungkusKomplit').value = 1;
+                document.getElementById('checkFasting').checked = false;
+                document.getElementById('inputNote').value = '';
+
+                document.getElementById('formTitle').textContent = 'Ceklist Makan Harian';
+                document.getElementById('submitBtn').querySelector('span').textContent = 'Simpan Data Hari Ini';
+            }
+            calculateDailyTotal();
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('inputDate').value;
+            const sarapan = document.getElementById('checkSarapan').checked;
+            const siang = document.getElementById('checkSiang').checked;
+            const lauk = document.getElementById('checkLauk').checked;
+            const bungkusKomplit = document.getElementById('checkBungkusKomplit').checked;
+            const customMenu = document.getElementById('checkCustomMenu').checked;
+            const customMenuName = document.getElementById('customMenuName').value.trim();
+            const customMenuPrice = getCustomMenuPrice();
+            const qtyBungkusLauk = getQty('qtyBungkusLauk');
+            const qtyBungkusKomplit = getQty('qtyBungkusKomplit');
+            const fasting = document.getElementById('checkFasting').checked;
+            const note = document.getElementById('inputNote').value.trim();
+
+            if (!date) {
+                showToast('Pilih tanggal terlebih dahulu!', 'error');
+                return;
+            }
+
+            if (!sarapan && !siang && !lauk && !bungkusKomplit && !customMenu && !fasting) {
+                showToast('Centang minimal satu pilihan makanan, Menu Custom, atau "Tidak Makan"!', 'error');
+                return;
+            }
+
+            if (customMenu && !customMenuName) {
+                showToast('Isi nama Menu Custom terlebih dahulu!', 'error');
+                document.getElementById('customMenuName').focus();
+                return;
+            }
+
+            if (customMenu && customMenuPrice <= 0) {
+                showToast('Isi harga Menu Custom lebih dari Rp0!', 'error');
+                document.getElementById('customMenuPrice').focus();
+                return;
+            }
+
+            const total = calculateDailyTotal();
+            const existingIndex = dailyRecords.findIndex(r => r.date === date);
+
+            if (existingIndex !== -1) {
+                dailyRecords[existingIndex] = {
+                    id: dailyRecords[existingIndex].id,
+                    date,
+                    sarapan,
+                    siang,
+                    lauk,
+                    bungkusKomplit,
+                    qtyBungkusLauk: lauk ? qtyBungkusLauk : 0,
+                    qtyBungkusKomplit: bungkusKomplit ? qtyBungkusKomplit : 0,
+                    customMenu,
+                    customMenuName: customMenu ? customMenuName : '',
+                    customMenuPrice: customMenu ? customMenuPrice : 0,
+                    fasting,
+                    note,
+                    total
+                };
+                showToast('Catatan rekap tanggal tersebut berhasil diperbarui!');
+            } else {
+                dailyRecords.push({
+                    id: Date.now().toString(),
+                    date,
+                    sarapan,
+                    siang,
+                    lauk,
+                    bungkusKomplit,
+                    qtyBungkusLauk: lauk ? qtyBungkusLauk : 0,
+                    qtyBungkusKomplit: bungkusKomplit ? qtyBungkusKomplit : 0,
+                    customMenu,
+                    customMenuName: customMenu ? customMenuName : '',
+                    customMenuPrice: customMenu ? customMenuPrice : 0,
+                    fasting,
+                    note,
+                    total
+                });
+                showToast('Rekap makanan berhasil disimpan!');
+            }
+
+            saveToStorage();
+
+            // Sinkronkan periode berdasarkan tanggal transaksi (28-31 masuk periode berikutnya).
+            setSelectorsForDate(date);
+
+            resetForm();
+            updateDashboard();
+        }
+
+        function editRecord(id) {
+            const item = dailyRecords.find(r => r.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('inputDate').value = item.date;
+            document.getElementById('checkSarapan').checked = !!item.sarapan;
+            document.getElementById('checkSiang').checked = !!item.siang;
+            document.getElementById('checkLauk').checked = !!item.lauk;
+            document.getElementById('checkBungkusKomplit').checked = !!item.bungkusKomplit;
+            document.getElementById('checkCustomMenu').checked = !!item.customMenu;
+            document.getElementById('customMenuName').value = item.customMenuName || '';
+            document.getElementById('customMenuPrice').value = item.customMenuPrice > 0 ? item.customMenuPrice : '';
+            document.getElementById('qtyBungkusLauk').value = item.qtyBungkusLauk > 0 ? item.qtyBungkusLauk : 1;
+            document.getElementById('qtyBungkusKomplit').value = item.qtyBungkusKomplit > 0 ? item.qtyBungkusKomplit : 1;
+            document.getElementById('checkFasting').checked = !!item.fasting;
+            document.getElementById('inputNote').value = item.note || '';
+
+            document.getElementById('formTitle').textContent = 'Edit Rekap Tanggal Ini';
+            document.getElementById('submitBtn').querySelector('span').textContent = 'Update Catatan';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+            calculateDailyTotal();
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteRecord(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus rekap tanggal ini?')) return;
+            
+            dailyRecords = dailyRecords.filter(r => r.id !== id);
+            saveToStorage();
+            updateDashboard();
+            showToast('Catatan berhasil dihapus');
+        }
+
+        function resetForm() {
+            document.getElementById('foodForm').reset();
+            document.getElementById('editId').value = '';
+            
+            // Explicitly ensure all checkboxes are unchecked (blank)
+            document.getElementById('checkSarapan').checked = false;
+            document.getElementById('checkSiang').checked = false;
+            document.getElementById('checkLauk').checked = false;
+            document.getElementById('checkBungkusKomplit').checked = false;
+            document.getElementById('checkCustomMenu').checked = false;
+            document.getElementById('customMenuName').value = '';
+            document.getElementById('customMenuPrice').value = '';
+            document.getElementById('qtyBungkusLauk').value = 1;
+            document.getElementById('qtyBungkusKomplit').value = 1;
+            document.getElementById('checkFasting').checked = false;
+            document.getElementById('inputNote').value = '';
+
+            setTodayDefaultDate();
+            onDateChange();
+            
+            document.getElementById('formTitle').textContent = 'Ceklist Makan Harian';
+            document.getElementById('submitBtn').querySelector('span').textContent = 'Simpan Data Hari Ini';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            
+            calculateDailyTotal();
+        }
+
+        // Periode rekap: tanggal 28 bulan sebelumnya sampai tanggal 27 bulan terpilih.
+        function getPeriodRange() {
+            const selectedMonth = parseInt(document.getElementById('selectMonth').value, 10);
+            const selectedYear = parseInt(document.getElementById('selectYear').value, 10);
+
+            return {
+                start: new Date(selectedYear, selectedMonth - 1, 28),
+                end: new Date(selectedYear, selectedMonth, 27)
+            };
+        }
+
+        // Tentukan bulan/tahun periode berdasarkan tanggal transaksi.
+        function setSelectorsForDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const periodDate = new Date(year, month - 1 + (day >= 28 ? 1 : 0), 1);
+            document.getElementById('selectMonth').value = periodDate.getMonth();
+            document.getElementById('selectYear').value = periodDate.getFullYear();
+        }
+
+        function getFilteredRecords() {
+            const { start, end } = getPeriodRange();
+
+            return dailyRecords.filter(r => {
+                const [year, month, day] = r.date.split('-').map(Number);
+                const d = new Date(year, month - 1, day);
+                return d >= start && d <= end;
+            });
+        }
+
+        function updateDashboard() {
+            const monthlyData = getFilteredRecords();
+            
+            // Total Month Expense
+            const monthTotal = monthlyData.reduce((acc, curr) => acc + curr.total, 0);
+            document.getElementById('statMonthTotal').textContent = formatIDR(monthTotal);
+            document.getElementById('statMonthDays').textContent = `${monthlyData.length} hari tercatat`;
+
+            // Active Eating Days vs Fasting Days
+            const activeDays = monthlyData.filter(r => !r.fasting && (r.sarapan || r.siang || r.lauk || r.bungkusKomplit)).length;
+            const fastingDays = monthlyData.filter(r => r.fasting || (!r.sarapan && !r.siang && !r.lauk)).length;
+
+            const avgPerDay = activeDays > 0 ? Math.round(monthTotal / activeDays) : 0;
+            document.getElementById('statDailyAvg').textContent = formatIDR(avgPerDay);
+            document.getElementById('statActiveDays').textContent = `Dari ${activeDays} hari aktif makan`;
+
+            // Meal Frequencies
+            const sarapanCount = monthlyData.filter(r => r.sarapan).length;
+            const siangCount = monthlyData.filter(r => r.siang).length;
+            const laukCount = monthlyData.filter(r => r.lauk).length;
+            const bungkusKomplitCount = monthlyData.filter(r => r.bungkusKomplit).length;
+            const totalMealTimes = sarapanCount + siangCount + laukCount + bungkusKomplitCount;
+
+            document.getElementById('statTotalMeals').textContent = totalMealTimes;
+            document.getElementById('statSarapanCount').textContent = `🌅 ${sarapanCount}`;
+            document.getElementById('statSiangCount').textContent = `☀️ ${siangCount}`;
+            document.getElementById('statLaukCount').textContent = `🍱 ${laukCount}`;
+            document.getElementById('statBungkusKomplitCount').textContent = `📦 ${bungkusKomplitCount}`;
+
+            document.getElementById('statZeroDaysCount').textContent = `${fastingDays} Hari`;
+
+            renderChart(monthlyData);
+            renderTransactions();
+        }
+
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const monthlyData = getFilteredRecords();
+
+            monthlyData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            tbody.innerHTML = '';
+
+            if (monthlyData.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            monthlyData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition duration-150";
+
+                let badgesHtml = '<div class="flex flex-wrap items-center gap-1.5">';
+                if (item.fasting || (!item.sarapan && !item.siang && !item.lauk && !item.bungkusKomplit && !item.customMenu)) {
+                    badgesHtml += `<span class="bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-0.5 rounded-full">🚫 Tidak Makan / Rp 0</span>`;
+                } else {
+                    if (item.sarapan) {
+                        badgesHtml += `<span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">🌅 Sarapan (7rb)</span>`;
+                    }
+                    if (item.siang) {
+                        badgesHtml += `<span class="bg-orange-100 text-orange-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">☀️ Siang (12rb)</span>`;
+                    }
+                    if (item.lauk) {
+                        const qtyLauk = item.qtyBungkusLauk > 0 ? item.qtyBungkusLauk : 1;
+                        badgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">🍱 Lauk ${qtyLauk}x (${formatIDR(PRICES.lauk * qtyLauk)})</span>`;
+                    }
+                    if (item.bungkusKomplit) {
+                        const qtyKomplit = item.qtyBungkusKomplit > 0 ? item.qtyBungkusKomplit : 1;
+                        badgesHtml += `<span class="bg-violet-100 text-violet-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">📦 Komplit ${qtyKomplit}x (${formatIDR(PRICES.bungkusKomplit * qtyKomplit)})</span>`;
+                    }
+                    if (item.customMenu) {
+                        const customName = escapeHtml(getCustomMenuLabel(item));
+                        const customPrice = Number(item.customMenuPrice) || 0;
+                        badgesHtml += `<span class="bg-cyan-100 text-cyan-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">✏️ ${customName} (${formatIDR(customPrice)})</span>`;
+                    }
+                }
+                
+                if (item.note) {
+                    badgesHtml += `<span class="text-slate-400 text-xs italic block w-full mt-1"><i class="fa-solid fa-note-sticky text-amber-500 mr-1"></i>${escapeHtml(item.note)}</span>`;
+                }
+                badgesHtml += '</div>';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 text-xs font-bold text-slate-700 whitespace-nowrap">
+                        ${formatDateIndo(item.date)}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        ${badgesHtml}
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-black ${item.total > 0 ? 'text-slate-800' : 'text-slate-400'} whitespace-nowrap">
+                        ${formatIDR(item.total)}
+                    </td>
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                        <div class="flex items-center justify-center space-x-1.5">
+                            <button onclick="editRecord('${item.id}')" title="Edit" class="p-1.5 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 transition">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteRecord('${item.id}')" title="Hapus" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleChartType(mode) {
+            currentChartMode = mode;
+            const btnCat = document.getElementById('btnChartCat');
+            const btnTrend = document.getElementById('btnChartTrend');
+
+            if (mode === 'category') {
+                btnCat.className = 'text-xs px-3 py-1.5 rounded-lg bg-orange-600 text-white font-bold shadow-sm transition';
+                btnTrend.className = 'text-xs px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 font-bold transition';
+            } else {
+                btnTrend.className = 'text-xs px-3 py-1.5 rounded-lg bg-orange-600 text-white font-bold shadow-sm transition';
+                btnCat.className = 'text-xs px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 font-bold transition';
+            }
+
+            renderChart(getFilteredRecords());
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            if (data.length === 0) return;
+
+            if (currentChartMode === 'category') {
+                const sarapanTotal = data.filter(r => r.sarapan).length * PRICES.sarapan;
+                const siangTotal = data.filter(r => r.siang).length * PRICES.siang;
+                const laukTotal = data.filter(r => r.lauk).length * PRICES.lauk;
+                const bungkusKomplitTotal = data.filter(r => r.bungkusKomplit).length * PRICES.bungkusKomplit;
+
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sarapan (7rb)', 'Makan Siang (12rb)', 'Bungkus Lauk (8rb)', 'Bungkus Komplit (12rb)'],
+                        datasets: [{
+                            data: [sarapanTotal, siangTotal, laukTotal, bungkusKomplitTotal],
+                            backgroundColor: ['#f59e0b', '#ea580c', '#10b981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.label}: ${formatIDR(context.raw)}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                const { start, end } = getPeriodRange();
+                const dailyMap = {};
+                const dateLabels = [];
+
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    dailyMap[dateKey] = 0;
+                    dateLabels.push(`Tgl ${d.getDate()}`);
+                }
+
+                data.forEach(item => {
+                    if (dailyMap[item.date] !== undefined) {
+                        dailyMap[item.date] += item.total;
+                    }
+                });
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dateLabels,
+                        datasets: [{
+                            label: 'Total Utang (Rp)',
+                            data: Object.values(dailyMap),
+                            backgroundColor: '#ea580c',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` Utang Hari Ini: ${formatIDR(context.raw)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) { return 'Rp ' + (value/1000) + 'k'; }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function exportToCSV() {
+            const data = getFilteredRecords();
+            if (data.length === 0) {
+                showToast('Tidak ada data untuk diekspor!', 'error');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,Tanggal,Sarapan (7rb),Makan Siang (12rb),Bungkus Lauk (8rb),Qty Lauk,Bungkus Komplit (12rb),Qty Komplit,Menu Custom,Nama Custom,Harga Custom,Tidak Makan / Rp0,Catatan,Total (IDR)\n";
+            data.forEach(row => {
+                csvContent += `"${row.date}","${row.sarapan ? 'Ya' : 'Tidak'}","${row.siang ? 'Ya' : 'Tidak'}","${row.lauk ? 'Ya' : 'Tidak'}","${row.lauk ? (row.qtyBungkusLauk || 1) : 0}","${row.bungkusKomplit ? 'Ya' : 'Tidak'}","${row.bungkusKomplit ? (row.qtyBungkusKomplit || 1) : 0}","${row.customMenu ? 'Ya' : 'Tidak'}","${(row.customMenuName || '').replace(/"/g, '""')}","${row.customMenu ? (row.customMenuPrice || 0) : 0}","${row.fasting ? 'Ya' : 'Tidak'}","${(row.note || '').replace(/"/g, '""')}","${row.total}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Rekap_Utang_Dapur_${document.getElementById('selectMonth').value}_${document.getElementById('selectYear').value}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('File CSV berhasil diunduh!');
+        }
+
+        function exportJSON() {
+            if (dailyRecords.length === 0) {
+                showToast('Belum ada data rekap!', 'error');
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dailyRecords, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `Rekap_Utang_Dapur_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchorElem.click();
+            dlAnchorElem.remove();
+            showToast('Cadangan JSON berhasil diunduh!');
+        }
+
+        function importJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        dailyRecords = imported;
+                    } else if (imported.records && Array.isArray(imported.records)) {
+                        dailyRecords = imported.records;
+                    } else {
+                        showToast('Format JSON tidak valid!', 'error');
+                        return;
+                    }
+                    dailyRecords = normalizeRecords(dailyRecords);
+                    saveToStorage();
+                    updateDashboard();
+                    closeModal('exportImportModal');
+                    showToast('Data berhasil dipulihkan!');
+                } catch (err) {
+                    showToast('Gagal membaca file JSON!', 'error');
+                }
+            };
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        function clearAllData() {
+            if (!confirm('Apakah Anda yakin ingin menghapus SELURUH data rekap? Tindakan ini tidak dapat dibatalkan.')) return;
+            dailyRecords = [];
+            saveToStorage();
+            updateDashboard();
+            closeModal('exportImportModal');
+            showToast('Seluruh data berhasil dibersihkan');
+        }
+
+        function formatIDR(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDateIndo(dateStr) {
+            const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+            return new Date(dateStr).toLocaleDateString('id-ID', options);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+    <!-- Single-File PWA Setup (Inline Manifest & Service Worker) -->
+    <script>
+        (function initSingleFilePWA() {
+            const pageUrl = window.location.href.split('#')[0];
+            const baseUrl = pageUrl.substring(0, pageUrl.lastIndexOf('/') + 1);
+            const iconUrl = baseUrl + "Gemini_Generated_Image_7s83ab7s83ab7s83-removebg-preview.png";
+
+            const manifestObj = {
+                name: "REKAP UTANG DAPUR - Pencatatan Pengeluaran Dapur Harian",
+                short_name: "Utang Dapur",
+                description: "Sistem Rekap & Pencatatan Pengeluaran Dapur Harian",
+                start_url: pageUrl,
+                scope: baseUrl,
+                display: "standalone",
+                background_color: "#f8fafc",
+                theme_color: "#ea580c",
+                orientation: "portrait-primary",
+                icons: [
+                    {
+                        src: iconUrl,
+                        sizes: "192x192",
+                        type: "image/png",
+                        purpose: "any maskable"
+                    },
+                    {
+                        src: iconUrl,
+                        sizes: "512x512",
+                        type: "image/png",
+                        purpose: "any maskable"
+                    }
+                ]
+            };
+
+            try {
+                const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+                const manifestLink = document.getElementById('pwa-manifest');
+                if (manifestLink) {
+                    manifestLink.href = URL.createObjectURL(manifestBlob);
+                }
+            } catch (e) {}
+
+            if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                window.addEventListener('load', () => {
+                    const swCode = `
+                        const CACHE_NAME = 'rekap-utang-dapur-single-v1';
+                        const CORE_ASSETS = [
+                            '${pageUrl}',
+                            '${iconUrl}',
+                            'https://cdn.tailwindcss.com',
+                            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                            'https://cdn.jsdelivr.net/npm/chart.js',
+                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
+                        ];
+
+                        self.addEventListener('install', (event) => {
+                            event.waitUntil(
+                                caches.open(CACHE_NAME)
+                                    .then((cache) => cache.addAll(CORE_ASSETS))
+                                    .catch(() => {})
+                            );
+                            self.skipWaiting();
+                        });
+
+                        self.addEventListener('activate', (event) => {
+                            event.waitUntil(
+                                caches.keys().then((keys) =>
+                                    Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+                                )
+                            );
+                            self.clients.claim();
+                        });
+
+                        self.addEventListener('fetch', (event) => {
+                            event.respondWith(
+                                caches.match(event.request).then((cached) => {
+                                    if (cached) return cached;
+                                    return fetch(event.request)
+                                        .then((response) => {
+                                            if (response && response.status === 200) {
+                                                const clone = response.clone();
+                                                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                                            }
+                                            return response;
+                                        })
+                                        .catch(() => cached);
+                                })
+                            );
+                        });
+                    `;
+
+                    try {
+                        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                        const swURL = URL.createObjectURL(swBlob);
+                        navigator.serviceWorker.register(swURL, { scope: './' }).catch(() => {});
+                    } catch (err) {}
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
